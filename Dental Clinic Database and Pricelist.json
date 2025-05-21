@@ -1,0 +1,493 @@
+{
+  "Clinic": {
+    "name": "SmileCare Dental Clinic",
+    "founded": "2010",
+    "contact": {
+      "phone": "+1-800-555-0123",
+      "email": "info@smilecare.com",
+      "website": "www.smilecare.com"
+    },
+    "rating": 4.7,
+    "emergency_service": true
+  },
+  "Categories": [
+    {
+      "category_id": 1,
+      "category_name": "Therapeutic Dentistry",
+      "description": "Treatment of cavities, root canals, and general dental care"
+    },
+    {
+      "category_id": 2,
+      "category_name": "Orthodontics",
+      "description": "Braces, aligners, and bite correction"
+    },
+    {
+      "category_id": 3,
+      "category_name": "Surgical Dentistry",
+      "description": "Extractions, implants, and jaw surgeries"
+    },
+    {
+      "category_id": 4,
+      "category_name": "Cosmetic Dentistry",
+      "description": "Whitening, veneers, and aesthetic enhancements"
+    },
+    {
+      "category_id": 5,
+      "category_name": "Prosthetics",
+      "description": "Crowns, bridges, and dentures"
+    },
+    {
+      "category_id": 6,
+      "category_name": "Pediatric Dentistry",
+      "description": "Dental care for children"
+    },
+    {
+      "category_id": 7,
+      "category_name": "Periodontics",
+      "description": "Gum disease treatment and prevention"
+    }
+  ],
+  "Doctors": [
+    {
+      "doctor_id": 1,
+      "doctor_name": "Dr. John Smith",
+      "specialization": "Therapeutic Dentist",
+      "category": "1",
+      "years_of_experience": 15,
+      "education": "DDS, Harvard University",
+      "languages": ["English", "Spanish"],
+      "schedule": {
+        "monday": "09:00-17:00",
+        "wednesday": "10:00-18:00",
+        "friday": "09:00-15:00"
+      },
+      "awards": ["Best Dentist 2022"]
+    },
+    {
+      "doctor_id": 2,
+      "doctor_name": "Dr. Anna Brown",
+      "specialization": "Orthodontist",
+      "category": "2",
+      "years_of_experience": 10,
+      "education": "DMD, UCLA",
+      "languages": ["English"],
+      "schedule": {
+        "tuesday": "09:00-17:00",
+        "thursday": "10:00-18:00",
+        "saturday": "09:00-13:00"
+      }
+    },
+    {
+      "doctor_id": 3,
+      "doctor_name": "Dr. Mark Davis",
+      "specialization": "Dental Surgeon",
+      "category": "1",
+      "years_of_experience": 20,
+      "education": "DDS, University of Michigan",
+      "languages": ["English", "French"],
+      "schedule": {
+        "monday": "08:00-16:00",
+        "wednesday": "09:00-17:00",
+        "friday": "08:00-14:00"
+      }
+    },
+    {
+      "doctor_id": 4,
+      "doctor_name": "Dr. Emily Wilson",
+      "specialization": "Cosmetic Dentist",
+      "category": "3",
+      "years_of_experience": 8,
+      "education": "DMD, NYU",
+      "languages": ["English"],
+      "schedule": {
+        "tuesday": "10:00-18:00",
+        "thursday": "09:00-17:00"
+      }
+    },
+    {
+      "doctor_id": 5,
+      "doctor_name": "Dr. Sarah Lee",
+      "specialization": "Prosthodontist",
+      "category": "2",
+      "years_of_experience": 12,
+      "education": "DDS, Columbia University",
+      "languages": ["English", "Korean"],
+      "schedule": {
+        "monday": "09:00-17:00",
+        "wednesday": "10:00-18:00",
+        "friday": "09:00-15:00"
+      }
+    },
+    {
+      "doctor_id": 6,
+      "doctor_name": "Dr. Michael Chen",
+      "specialization": "Pediatric Dentist",
+      "category": "3",
+      "years_of_experience": 7,
+      "education": "DMD, University of Toronto",
+      "languages": ["English", "Mandarin"],
+      "schedule": {
+        "tuesday": "09:00-17:00",
+        "thursday": "10:00-18:00"
+      }
+    },
+    {
+      "doctor_id": 7,
+      "doctor_name": "Dr. Olga Petrova",
+      "specialization": "Periodontist",
+      "category": "1",
+      "years_of_experience": 14,
+      "education": "DDS, Moscow State University",
+      "languages": ["English", "Russian"],
+      "schedule": {
+        "monday": "08:00-16:00",
+        "wednesday": "09:00-17:00",
+        "friday": "08:00-14:00"
+      }
+    }
+  ],
+  "Services": [
+    {
+      "service_id": 1,
+      "service_name": "Cavity Filling",
+      "category_id": 1,
+      "description": "Filling cavities with composite material",
+      "duration_minutes": 60,
+      "base_price": 100.00
+    },
+    {
+      "service_id": 2,
+      "service_name": "Teeth Cleaning",
+      "category_id": 1,
+      "description": "Professional scaling and polishing",
+      "duration_minutes": 45,
+      "base_price": 50.00
+    },
+    {
+      "service_id": 3,
+      "service_name": "Root Canal Treatment",
+      "category_id": 1,
+      "description": "Endodontic treatment for infected teeth",
+      "duration_minutes": 90,
+      "base_price": 400.00
+    },
+    {
+      "service_id": 4,
+      "service_name": "Braces Installation",
+      "category_id": 2,
+      "description": "Installation of metal or ceramic braces",
+      "duration_minutes": 120,
+      "base_price": 2000.00
+    },
+    {
+      "service_id": 5,
+      "service_name": "Invisalign Treatment",
+      "category_id": 2,
+      "description": "Clear aligner therapy",
+      "duration_minutes": 60,
+      "base_price": 4500.00
+    },
+    {
+      "service_id": 6,
+      "service_name": "Tooth Extraction",
+      "category_id": 3,
+      "description": "Simple tooth removal",
+      "duration_minutes": 30,
+      "base_price": 150.00
+    },
+    {
+      "service_id": 7,
+      "service_name": "Wisdom Tooth Removal",
+      "category_id": 3,
+      "description": "Surgical removal of wisdom teeth",
+      "duration_minutes": 60,
+      "base_price": 300.00
+    },
+    {
+      "service_id": 8,
+      "service_name": "Jaw Surgery",
+      "category_id": 3,
+      "description": "Corrective jaw surgery",
+      "duration_minutes": 180,
+      "base_price": 3000.00
+    },
+    {
+      "service_id": 9,
+      "service_name": "Teeth Whitening",
+      "category_id": 4,
+      "description": "Professional laser whitening",
+      "duration_minutes": 90,
+      "base_price": 200.00
+    },
+    {
+      "service_id": 10,
+      "service_name": "Veneer Placement",
+      "category_id": 4,
+      "description": "Porcelain veneer application",
+      "duration_minutes": 120,
+      "base_price": 500.00
+    },
+    {
+      "service_id": 11,
+      "service_name": "Lumineer Installation",
+      "category_id": 4,
+      "description": "Ultra-thin lumineer placement",
+      "duration_minutes": 150,
+      "base_price": 700.00
+    },
+    {
+      "service_id": 12,
+      "service_name": "Dental Implant",
+      "category_id": 5,
+      "description": "Single tooth implant placement",
+      "duration_minutes": 120,
+      "base_price": 1500.00
+    },
+    {
+      "service_id": 13,
+      "service_name": "Crown Installation",
+      "category_id": 5,
+      "description": "Ceramic or metal crown fitting",
+      "duration_minutes": 90,
+      "base_price": 600.00
+    },
+    {
+      "service_id": 14,
+      "service_name": "Denture Fitting",
+      "category_id": 5,
+      "description": "Full or partial denture installation",
+      "duration_minutes": 120,
+      "base_price": 1200.00
+    },
+    {
+      "service_id": 15,
+      "service_name": "Pediatric Checkup",
+      "category_id": 6,
+      "description": "Routine dental exam for kids",
+      "duration_minutes": 30,
+      "base_price": 40.00
+    },
+    {
+      "service_id": 16,
+      "service_name": "Fluoride Treatment",
+      "category_id": 6,
+      "description": "Fluoride application for children",
+      "duration_minutes": 20,
+      "base_price": 30.00
+    },
+    {
+      "service_id": 17,
+      "service_name": "Gum Disease Treatment",
+      "category_id": 7,
+      "description": "Scaling and root planing",
+      "duration_minutes": 60,
+      "base_price": 250.00
+    },
+    {
+      "service_id": 18,
+      "service_name": "Gum Graft Surgery",
+      "category_id": 7,
+      "description": "Surgical gum tissue restoration",
+      "duration_minutes": 90,
+      "base_price": 800.00
+    }
+  ],
+  "Pricelist": [
+    {
+      "pricelist_id": 1,
+      "service_id": 1,
+      "doctor_id": 1,
+      "adjusted_price": 120.00,
+      "notes": "1st category adjustment (20% increase)"
+    },
+    {
+      "pricelist_id": 2,
+      "service_id": 2,
+      "doctor_id": 1,
+      "adjusted_price": 60.00,
+      "notes": "1st category adjustment (20% increase)"
+    },
+    {
+      "pricelist_id": 3,
+      "service_id": 3,
+      "doctor_id": 1,
+      "adjusted_price": 480.00,
+      "notes": "1st category adjustment (20% increase)"
+    },
+    {
+      "pricelist_id": 4,
+      "service_id": 4,
+      "doctor_id": 2,
+      "adjusted_price": 2200.00,
+      "notes": "2nd category adjustment (10% increase)"
+    },
+    {
+      "pricelist_id": 5,
+      "service_id": 5,
+      "doctor_id": 2,
+      "adjusted_price": 4950.00,
+      "notes": "2nd category adjustment (10% increase)"
+    },
+    {
+      "pricelist_id": 6,
+      "service_id": 6,
+      "doctor_id": 3,
+      "adjusted_price": 180.00,
+      "notes": "1st category adjustment (20% increase)"
+    },
+    {
+      "pricelist_id": 7,
+      "service_id": 7,
+      "doctor_id": 3,
+      "adjusted_price": 360.00,
+      "notes": "1st category adjustment (20% increase)"
+    },
+    {
+      "pricelist_id": 8,
+      "service_id": 8,
+      "doctor_id": 3,
+      "adjusted_price": 3600.00,
+      "notes": "1st category adjustment (20% increase)"
+    },
+    {
+      "pricelist_id": 9,
+      "service_id": 9,
+      "doctor_id": 4,
+      "adjusted_price": 200.00,
+      "notes": "3rd category (no adjustment)"
+    },
+    {
+      "pricelist_id": 10,
+      "service_id": 10,
+      "doctor_id": 4,
+      "adjusted_price": 500.00,
+      "notes": "3rd category (no adjustment)"
+    },
+    {
+      "pricelist_id": 11,
+      "service_id": 11,
+      "doctor_id": 4,
+      "adjusted_price": 700.00,
+      "notes": "3rd category (no adjustment)"
+    },
+    {
+      "pricelist_id": 12,
+      "service_id": 12,
+      "doctor_id": 5,
+      "adjusted_price": 1650.00,
+      "notes": "2nd category adjustment (10% increase)"
+    },
+    {
+      "pricelist_id": 13,
+      "service_id": 13,
+      "doctor_id": 5,
+      "adjusted_price": 660.00,
+      "notes": "2nd category adjustment (10% increase)"
+    },
+    {
+      "pricelist_id": 14,
+      "service_id": 14,
+      "doctor_id": 5,
+      "adjusted_price": 1320.00,
+      "notes": "2nd category adjustment (10% increase)"
+    },
+    {
+      "pricelist_id": 15,
+      "service_id": 15,
+      "doctor_id": 6,
+      "adjusted_price": 40.00,
+      "notes": "3rd category (no adjustment)"
+    },
+    {
+      "pricelist_id": 16,
+      "service_id": 16,
+      "doctor_id": 6,
+      "adjusted_price": 30.00,
+      "notes": "3rd category (no adjustment)"
+    },
+    {
+      "pricelist_id": 17,
+      "service_id": 17,
+      "doctor_id": 7,
+      "adjusted_price": 300.00,
+      "notes": "1st category adjustment (20% increase)"
+    },
+    {
+      "pricelist_id": 18,
+      "service_id": 18,
+      "doctor_id": 7,
+      "adjusted_price": 960.00,
+      "notes": "1st category adjustment (20% increase)"
+    }
+  ],
+  "Reviews": [
+    {
+      "review_id": 1,
+      "doctor_id": 1,
+      "patient_name": "Jane Doe",
+      "rating": 5,
+      "comment": "Excellent service, very professional!"
+    },
+    {
+      "review_id": 2,
+      "doctor_id": 2,
+      "patient_name": "Mike Johnson",
+      "rating": 4,
+      "comment": "Good experience with braces, a bit pricey."
+    },
+    {
+      "review_id": 3,
+      "doctor_id": 3,
+      "patient_name": "Sarah Williams",
+      "rating": 5,
+      "comment": "Fast and painless extraction!"
+    }
+  ],
+  "Locations": [
+    {
+      "location_id": 1,
+      "address": "123 Dental Ave, New York, NY 10001",
+      "phone": "+1-800-555-0123",
+      "coordinates": {
+        "lat": 40.7128,
+        "lon": -74.0060
+      }
+    },
+    {
+      "location_id": 2,
+      "address": "456 Smile St, Los Angeles, CA 90001",
+      "phone": "+1-800-555-0124",
+      "coordinates": {
+        "lat": 34.0522,
+        "lon": -118.2437
+      }
+    }
+  ],
+  "Specializations": [
+    {
+      "specialization_id": 1,
+      "doctor_id": 1,
+      "specialization_name": "Endodontics"
+    },
+    {
+      "specialization_id": 2,
+      "doctor_id": 2,
+      "specialization_name": "Invisalign Certified"
+    },
+    {
+      "specialization_id": 3,
+      "doctor_id": 3,
+      "specialization_name": "Oral Surgery"
+    },
+    {
+      "specialization_id": 4,
+      "doctor_id": 4,
+      "specialization_name": "Laser Dentistry"
+    },
+    {
+      "specialization_id": 5,
+      "doctor_id": 5,
+      "specialization_name": "Implantology"
+    }
+  ]
+}
