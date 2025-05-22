@@ -43,38 +43,38 @@ try:
         time.sleep(SCROLL_PAUSE_TIME)
 
     rows = driver.find_elements(By.CSS_SELECTOR, "div.mango-list-item")
-    print(f"🔎 Найдено строк звонков: {len(rows)}")
+    print(f"🔎 Found call rows: {len(rows)}")
 
     for i in range(len(rows)):
         try:
             rows = driver.find_elements(By.CSS_SELECTOR, "div.mango-list-item")
             row = rows[i]
 
-            print(f"\n👉 Строка {i+1}, содержимое: {row.text.strip()}")
+            print(f"\n👉 Row {i+1}, content: {row.text.strip()}")
             driver.execute_script("arguments[0].scrollIntoView(true);", row)
             time.sleep(1.0)
             ActionChains(driver).move_to_element(row).click().perform()
             time.sleep(3)
-            print(f"🧭 URL после клика: {driver.current_url}")
+            print(f"🧭 URL after click: {driver.current_url}")
 
             try:
                 audio_tag = wait.until(EC.presence_of_element_located((By.XPATH, '//audio')))
                 audio_src = audio_tag.get_attribute("src")
                 if audio_src:
-                    print(f"🎧 Найден аудиофайл: {audio_src}")
+                    print(f"🎧 Found audio file: {audio_src}")
                     filename = os.path.join(DOWNLOAD_PATH, f"call_{i+1}.mp3")
                     r = requests.get(audio_src)
                     with open(filename, "wb") as f:
                         f.write(r.content)
-                    print(f"✅ Сохранён: {filename}")
+                    print(f"✅ Saved: {filename}")
                 else:
-                    print("⚠️ Тег <audio> найден, но атрибут src пуст.")
+                    print("⚠️ <audio> tag found, but src attribute is empty.")
             except Exception as e:
-                print(f"❌ Не удалось найти <audio>: {e}")
+                print(f"❌ Failed to find <audio>: {e}")
 
         except Exception as e:
-            print(f"❌ Общая ошибка на строке {i+1}: {e}")
+            print(f"❌ General error on row {i+1}: {e}")
 
 finally:
     driver.quit()
-    print("\n🏁 Все файлы обработаны.")
+    print("\n🏁 All files processed.")
