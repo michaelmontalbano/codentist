@@ -1,0 +1,282 @@
+import React, {
+    createContext,
+    useContext,
+    useState,
+    useCallback,
+    FC,
+    ReactNode,
+    memo,
+  } from "react";
+   
+  /* --------------------------------------------------
+     1 ▸  Domain model (JSON‑serialisable)
+  ---------------------------------------------------*/
+   
+  export type Surface = "O" | "I" | "B" | "L" | "M" | "D"; // occlusal/incisal, buccal, lingual, mesial, distal
+   
+  export type Code =
+    | "sound"
+    | "caries"
+    | "restoration"
+    | "crown"
+    | "implant"
+    | "missing";
+   
+  export interface SurfaceState {
+    code: Code;
+    note?: string;
+  }
+   
+  export type ToothState = Record<Surface, SurfaceState>;
+  export type OdontogramState = Record<string, ToothState>; // key = ToothID in chosen numbering system
+   
+  /* --------------------------------------------------
+     2 ▸  Theme + context
+  ---------------------------------------------------*/
+   
+  export interface OdontogramTheme {
+    sound: string;
+    caries: string;
+    restoration: string;
+    crown: string;
+    implant: string;
+    missing: string;
+    stroke: string;
+  }
+   
+  const defaultTheme: OdontogramTheme = {
+    sound: "#4ade80", // emerald‑400
+    caries: "#f87171", // red‑400
+    restoration: "#60a5fa", // blue‑400
+    crown: "#fcd34d", // yellow‑300
+    implant: "#a78bfa", // violet‑400
+    missing: "#9ca3af", // gray‑400
+    stroke: "#334155", // slate‑700
+  };
+   
+  interface Ctx {
+    numbering: "FDI" | "UNIVERSAL";
+    theme: OdontogramTheme;
+    state: OdontogramState;
+    setState: React.Dispatch<React.SetStateAction<OdontogramState>>;
+  }
+   
+  const OdontogramContext = createContext<Ctx | null>(null);
+   
+  export const OdontogramProvider: FC<{
+    children: ReactNode;
+    numbering?: "FDI" | "UNIVERSAL";
+    theme?: Partial<OdontogramTheme>;
+    initialState?: OdontogramState;
+  }> = ({
+    children,
+    numbering = "FDI",
+    theme: themeOverrides = {},
+    initialState,
+  }) => {
+    const [state, setState] = useState<OdontogramState>(
+      initialState ?? generateInitialState(numbering)
+    );
+   
+    return (
+      <OdontogramContext.Provider
+        value={{
+          numbering,
+          theme: { ...defaultTheme, ...themeOverrides },
+          state,
+          setState,
+        }}
+      >
+        {children}
+      </OdontogramContext.Provider>
+    );
+  };
+   
+  export const useOdontogram = () => {
+    const ctx = useContext(OdontogramContext);
+    if (!ctx) throw new Error("useOdontogram must be inside provider");
+    return ctx;
+  };
+   
+  /* --------------------------------------------------
+     3 ▸  Core components
+  ---------------------------------------------------*/
+   
+  /** Main chart component – controlled */
+  export const Odontogram: FC<{
+    value: OdontogramState;
+    onChange: (s: OdontogramState) => void;
+  }> = ({ value, onChange }) => {
+    const { theme, numbering } = useOdontogram();
+   
+    const toggle = useCallback(
+      (toothId: string, surf: Surface) => {
+        const next: OdontogramState = JSON.parse(JSON.stringify(value));
+        const curr = next[toothId][surf].code;
+        next[toothId][surf].code = nextCode(curr);
+        onChange(next);
+      },
+      [value, onChange]
+    );
+   
+    return (
+      <svg
+        viewBox="0 0 860 240"
+        className="select-none w-full h-auto"
+        aria-label="Odontogram"
+      >
+        {layout[numbering].map(({ id, x, y }) => (
+          <Tooth
+            key={id}
+            id={id}
+            x={x}
+            y={y}
+            state={value[id]}
+            toggle={toggle}
+            theme={theme}
+          />
+        ))}
+      </svg>
+    );
+  };
+   
+  /* ---------------- Tooth & Surface ---------------- */
+  interface ToothProps {
+    id: string;
+    x: number;
+    y: number;
+    state: ToothState;
+    toggle: (id: string, surf: Surface) => void;
+    theme: OdontogramTheme;
+  }
+   
+  const Tooth: FC<ToothProps> = memo(({ id, x, y, state, toggle, theme }) => {
+    const size = 20; // base square for each surface
+    const gap = 2;
+    const toColor = (code: Code) => theme[code];
+   
+    const surfaceRects: { s: Surface; cx: number; cy: number }[] = [
+      { s: "O", cx: x + size + gap, cy: y },
+      { s: "I", cx: x + size + gap, cy: y + size * 2 + gap * 2 },
+      { s: "B", cx: x + size + gap, cy: y + size + gap },
+      { s: "L", cx: x, cy: y + size + gap },
+      { s: "M", cx: x, cy: y },
+      { s: "D", cx: x + size * 2 + gap * 2, cy: y },
+    ];
+   
+    return (
+      <g aria-label={`Tooth ${id}`}>
+        {surfaceRects.map(({ s, cx, cy }) => (
+          <rect
+            key={s}
+            x={cx}
+            y={cy}
+            width={size}
+            height={size}
+            rx={2}
+            ry={2}
+            fill={toColor(state[s].code)}
+            stroke={theme.stroke}
+            className="cursor-pointer transition-opacity hover:opacity-80 focus:outline-none"
+            onClick={() => toggle(id, s)}
+            aria-label={`${id} ${s}`}
+          />
+        ))}
+      </g>
+    );
+  });
+  Tooth.displayName = "Tooth";
+   
+  /* --------------------------------------------------
+     4 ▸  Helpers
+  ---------------------------------------------------*/
+   
+  function nextCode(c: Code): Code {
+    switch (c) {
+      case "sound":
+        return "caries";
+      case "caries":
+        return "restoration";
+      case "restoration":
+        return "sound";
+      default:
+        return "sound";
+    }
+  }
+   
+  function generateInitialState(numbering: "FDI" | "UNIVERSAL"): OdontogramState {
+    const teeth = layout[numbering].map((t) => t.id);
+    const blankSurface: SurfaceState = { code: "sound" };
+    const blankTooth: ToothState = {
+      O: { ...blankSurface },
+      I: { ...blankSurface },
+      B: { ...blankSurface },
+      L: { ...blankSurface },
+      M: { ...blankSurface },
+      D: { ...blankSurface },
+    };
+    return Object.fromEntries(teeth.map((id) => [id, JSON.parse(JSON.stringify(blankTooth))]));
+  }
+   
+  /* --------------------------------------------------
+     5 ▸  Simple layout helper (FDI + Universal)
+          – tweak coordinates for prettier spacing
+  ---------------------------------------------------*/
+   
+  const layout: Record<"FDI" | "UNIVERSAL", { id: string; x: number; y: number }[]> = {
+    FDI: [],
+    UNIVERSAL: [],
+  };
+   
+  (function buildLayout() {
+    // Build two rows: upper (16 teeth), lower (16 teeth)
+    const spacing = 28; // including gap
+    const rowY = [10, 120];
+   
+    // --- FDI numbering (18→11, 21→28 | 48→41, 31→38)
+    const fdiUpper = [18, 17, 16, 15, 14, 13, 12, 11, 21, 22, 23, 24, 25, 26, 27, 28];
+    const fdiLower = [48, 47, 46, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35, 36, 37, 38];
+    fdiUpper.forEach((id, idx) => {
+      layout.FDI.push({ id: id.toString(), x: idx * spacing, y: rowY[0] });
+    });
+    fdiLower.forEach((id, idx) => {
+      layout.FDI.push({ id: id.toString(), x: idx * spacing, y: rowY[1] });
+    });
+   
+    // --- Universal numbering (1–16 | 17–32)
+    for (let i = 0; i < 16; i++) {
+      layout.UNIVERSAL.push({ id: (16 - i).toString(), x: i * spacing, y: rowY[0] });
+    }
+    for (let i = 0; i < 16; i++) {
+      layout.UNIVERSAL.push({ id: (17 + i).toString(), x: i * spacing, y: rowY[1] });
+    }
+  })();
+   
+  /* --------------------------------------------------
+     6 ▸  Example wrapper (delete in production)
+  ---------------------------------------------------*/
+   
+  export const DemoOdontogram: FC = () => {
+    const { state, setState } = useOdontogram();
+    return (
+      <div className="p-4">
+        <Odontogram value={state} onChange={setState} />
+        <pre className="mt-4 text-xs bg-slate-100 p-2 rounded overflow-x-auto">
+          {JSON.stringify(state, null, 2)}
+        </pre>
+      </div>
+    );
+  };
+   
+  /* --------------------------------------------------
+     7 ▸  Default export for lazy import
+  ---------------------------------------------------*/
+   
+  /**
+  * Usage example:
+  *
+  * <OdontogramProvider numbering="FDI">
+  *   <DemoOdontogram />
+  * </OdontogramProvider>
+  */
+  export default Odontogram;
