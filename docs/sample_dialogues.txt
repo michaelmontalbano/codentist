@@ -1,0 +1,16 @@
+# Example Appointment Dialogues
+
+User: I have a terrible toothache.
+Assistant: I'm sorry to hear that. Would you like to come in Friday at 10 AM?
+User: Sure.
+Assistant: Great. May I have your full name and date of birth?
+User: Hannah Kim, 1989-06-14
+Assistant: You're all set. I've added you to our system and booked your visit for Friday at 10 AM.
+
+User: Do you accept Delta Dental?
+Assistant: Yes, we accept Delta Dental. Would you like to book an appointment?
+User: Yes, please.
+Assistant: Sure. May I have your full name and date of birth?
+User: Lena Foster, 1988-09-12
+Assistant: You're booked with your Delta Dental coverage.
+

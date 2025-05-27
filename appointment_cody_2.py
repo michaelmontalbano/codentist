@@ -1,51 +1,109 @@
-from datetime import datetime, timedelta
+"""Interactive bot assistant for a dental clinic."""
+
+from __future__ import annotations
+
+from datetime import datetime
 import os
 import json
+import re
 import pandas as pd
 import dateparser
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_openai import ChatOpenAI
 from langchain.agents import Tool, AgentExecutor, create_openai_functions_agent
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain.memory import ConversationBufferMemory
-from langchain_community.vectorstores import FAISS
 
-# === Конфигурация API ===
-with open(".env", "r") as f:
-    for line in f:
-        if line.startswith("OPENAI_API_KEY="):
-            os.environ["OPENAI_API_KEY"] = line.strip().split("=", 1)[1]
-            break
+# === API configuration ===
+if os.path.exists(".env"):
+    with open(".env", "r") as f:
+        for line in f:
+            if line.startswith("OPENAI_API_KEY="):
+                os.environ["OPENAI_API_KEY"] = line.strip().split("=", 1)[1]
+                break
 
 llm = ChatOpenAI(temperature=0.3, model="gpt-4o")
 memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True, input_key="input")
 
 # === Загрузка пациентов ===
-excel_path = "PATIENT_table.xlsx"
-df_patients = pd.read_excel(excel_path)
+EXCEL_PATH = "PATIENT_table.xlsx"
 
-string_columns = [
-    "first_name", "last_name", "date_of_birth", "reason", "area_of_the_mouth",
-    "desired_doctor", "appointment_datetime", "call_back_number", "email_address",
-    "previous_office", "dds_name", "xray_info", "insurance_status",
-    "insurance_name", "insurance_id", "credit_card", "exp_date", "cvc_code"
+PATIENT_COLUMNS = [
+    "Today's_Date",
+    "last_name",
+    "first_name",
+    "date_of_birth",
+    "Call_Back_Number",
+    "Email Address",
+    "reason_of_call",
+    "pain_duration",
+    "area_of_the_mouth",
+    "Previous Dental Office",
+    "Name of DDS",
+    "Office Number",
+    "Date_of_last_x-ray",
+    "type_of_x-ray",
+    "Name of Insurance",
+    "VIP",
+    "Appointment_date",
 ]
 
-for col in string_columns:
+if os.path.exists(EXCEL_PATH):
+    df_patients = pd.read_excel(EXCEL_PATH)
+else:
+    df_patients = pd.DataFrame(columns=PATIENT_COLUMNS)
+    df_patients.to_excel(EXCEL_PATH, index=False)
+
+services: dict = {}
+if os.path.exists("Dental Clinic Database and Pricelist.json"):
+    with open("Dental Clinic Database and Pricelist.json", "r", encoding="utf-8") as f:
+        services = json.load(f)
+
+json_patients: list[dict] = []
+if os.path.exists("patients_database.json"):
+    with open("patients_database.json", "r", encoding="utf-8") as f:
+        json_patients = json.load(f)
+
+
+def normalize_dob(text: str) -> str:
+    text = str(text).strip()
+    for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%m-%d-%Y", "%d/%m/%Y", "%d.%m.%Y", "%m/%d/%y"):
+        try:
+            return datetime.strptime(text, fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    try:
+        return datetime.fromisoformat(text).strftime("%Y-%m-%d")
+    except ValueError:
+        return ""
+
+
+def parse_name_and_dob(text: str):
+    date_patterns = [r"\d{4}-\d{1,2}-\d{1,2}", r"\d{1,2}[/-]\d{1,2}[/-]\d{2,4}", r"\d{1,2}\.\d{1,2}\.\d{2,4}"]
+    dob_raw = None
+    for pat in date_patterns:
+        m = re.search(pat, text)
+        if m:
+            dob_raw = m.group(0)
+            break
+    if not dob_raw:
+        return None
+    dob_norm = normalize_dob(dob_raw)
+    if not dob_norm:
+        return None
+    name_part = text.replace(dob_raw, "").replace(",", " ").strip()
+    tokens = [t for t in name_part.split() if t]
+    if len(tokens) < 2:
+        return None
+    first = tokens[0]
+    last = " ".join(tokens[1:])
+    return first, last, dob_norm
+
+for col in PATIENT_COLUMNS:
     if col not in df_patients.columns:
         df_patients[col] = ""
     df_patients[col] = df_patients[col].astype(str)
 
-# === FAISS RAG ===
-faiss_index = FAISS.load_local(
-    "rag_appointment_agent_faiss_index",
-    OpenAIEmbeddings(),
-    allow_dangerous_deserialization=True
-)
-
-def retrieve_similar_examples(query, k=3):
-    results = faiss_index.similarity_search(query, k=k)
-    return "\n---\n".join([r.page_content for r in results])
 
 # === Слоты ===
 slots_df = pd.read_excel("available_slots_by_doctor.xlsx")
@@ -71,18 +129,18 @@ def get_slots_for_input_date(text: str) -> list[str]:
         for h in [9, 11, 12, 14, 16, 17]
     ]
 
-def check_patient_exists_simple(full_name_dob: str) -> bool:
-    try:
-        name_part, dob = full_name_dob.split(",")
-        first, last = name_part.strip().split(" ", 1)
-        matches = df_patients[
-            (df_patients["first_name"].str.lower() == first.lower()) &
-            (df_patients["last_name"].str.lower() == last.lower()) &
-            (df_patients["date_of_birth"] == dob.strip())
-        ]
-        return not matches.empty
-    except Exception:
+def check_patient_exists(text: str) -> bool:
+    parsed = parse_name_and_dob(text)
+    if not parsed:
         return False
+    first, last, dob_norm = parsed
+    for rec in json_patients:
+        rec_norm = normalize_dob(rec.get("DOB", ""))
+        if rec.get("Patient Name", "").lower() == f"{first.lower()} {last.lower()}" and rec_norm == dob_norm:
+            return True
+        if rec.get("Patient Name", "").lower() == f"{last.lower()} {first.lower()}" and rec_norm == dob_norm:
+            return True
+    return False
 
 def add_patient_to_db(data: dict) -> str:
     import json
@@ -94,10 +152,23 @@ def add_patient_to_db(data: dict) -> str:
             raise ValueError("Expected a JSON object with patient fields, got malformed string.")
 
     global df_patients
-    new_entry = {col: str(data.get(col, "")) for col in string_columns}
+    new_entry = {col: str(data.get(col, "")) for col in PATIENT_COLUMNS}
     df_patients = pd.concat([df_patients, pd.DataFrame([new_entry])], ignore_index=True)
-    df_patients.to_excel(excel_path, index=False)
+    df_patients.to_excel(EXCEL_PATH, index=False)
     return f"Patient {new_entry.get('first_name')} {new_entry.get('last_name')} added."
+
+
+def find_service_price(query: str) -> str:
+    if not services:
+        return "Service database unavailable."
+    for cat in services.get("Services", []):
+        if isinstance(cat, dict):
+            for item in cat.get("items", []) or cat.get("services", []):
+                name = item.get("service_name") or item.get("name")
+                price = item.get("base_price") or item.get("price")
+                if name and name.lower() in query.lower():
+                    return f"{name} costs ${price}"
+    return "Service not found."
 
 # === Tools ===
 appointment_tools = [
@@ -117,46 +188,25 @@ Pass a JSON object like:
   "desired_doctor": "Dr. Smith"
 }"""
     ),
-    Tool(name="CheckPatientExists", func=check_patient_exists_simple, description="Checks if patient exists")
+    Tool(name="CheckPatientExists", func=check_patient_exists, description="Checks if a patient exists from a free-form 'name and DOB' string"),
+    Tool(name="FindServicePrice", func=find_service_price, description="Returns price for a dental service"),
 ]
 
 # === Prompt ===
 prompt = ChatPromptTemplate.from_messages([
-    HumanMessage(content="{retrieved_examples}"),
-
+    SystemMessage(content="You are Codey, a friendly assistant for a dental clinic."),
     SystemMessage(
         content="""
-You are AppointmentAgent, a proactive and kind assistant at a dental clinic.
-Your job is to:
-- Understand if a user is in pain or describes a symptom.
-- Offer the nearest appointment slot for a standard doctor.
-- If the user confirms the offer, ask for first name, last name, and date of birth.
-- If the user is booking for someone else (e.g., 'for my daughter'), collect that person's name and DOB instead.
-- Never assume the user is booking for someone else unless explicitly stated (e.g., 'for my husband').
-- If a user mentions a specific day or month like 'next Tuesday' or 'in June', use the GetSlotsForDateInput tool.
-- Then, use the tool AddPatientToDB with all the collected data.
-- Use other tools when helpful. Do not invent details.
-If the user asks which times are available, list the time slots clearly. Always respond to requests like 'Which ones?' with specific appointment options.
-You must keep track of what the user has said in the conversation.
-If the user asks about opening hours or whether you're open on a specific day (e.g., weekends), respond with business hours. Only offer appointments if the user asks to book.
-"""
+- Greet users and help with appointments.
+- If a user wants to book, ask 'For yourself or someone else?'.
+- Collect last name, first name and date of birth then validate the data.
+- Check existing patients with CheckPatientExists.
+- If information is missing, gather phone number, email, previous dental office, dentist name, office number and last x-ray date.
+- Record all data with AddPatientToDB.
+- Use GetAvailableSlots or GetSlotsForDateInput to suggest the earliest appointments, preferring Friday.
+- Answer price or service questions using FindServicePrice.
+- Keep replies short and polite.""",
     ),
-
-    HumanMessage(content="What are your hours?"),
-    AIMessage(content="We’re open Monday through Friday, 9:00 AM to 5:00 PM."),
-    HumanMessage(content="Are you open on Sunday?"),
-    AIMessage(content="We’re closed on weekends, but happy to help you Monday to Friday."),
-    HumanMessage(content="I have a terrible toothache."),
-    AIMessage(content="I'm sorry to hear that. Would you like to come in this Friday at 11:00 AM?"),
-    HumanMessage(content="Yes, that works."),
-    AIMessage(content="Great. May I have your full name and date of birth?"),
-    HumanMessage(content="My name is Jane Doe 02/04/1982"),
-    AIMessage(content="Thank you, Jane. What is the reason for your visit?"),
-    HumanMessage(content="Can you book me for a cleaning?"),
-    AIMessage(content="Sure. We have Friday at 11:00 AM available. Does that work for you?"),
-    HumanMessage(content="What is the nearest available appointment?"),
-    AIMessage(content="We have Friday at 11:00 AM available. Does that work for you?"),
-
     MessagesPlaceholder(variable_name="chat_history"),
     MessagesPlaceholder(variable_name="agent_scratchpad"),
     HumanMessage(content="{input}")
@@ -181,10 +231,6 @@ while True:
     if user_input.lower() in ["exit", "quit", "bye"]:
         print("🤖 Goodbye!")
         break
-    retrieved_context = retrieve_similar_examples(user_input)
-    enriched_input = f"{retrieved_context}\nNow answer this: {user_input}"
-    print("🧠 Retrieved:\n", retrieved_context)
-    print("📨 Enriched Input:\n", enriched_input)
-    result = appointment_agent.invoke({"input": enriched_input})
+    result = appointment_agent.invoke({"input": user_input})
     output = result["output"] if isinstance(result, dict) and "output" in result else str(result)
     print(f"🤖 {output}")
