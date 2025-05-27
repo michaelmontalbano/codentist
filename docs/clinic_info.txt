@@ -1,0 +1,50 @@
+Clinic Overview
+---------------
+Name: SmileCare Dental Clinic
+Founded: 2010
+Phone: +1-800-555-0123
+Email: info@smilecare.com
+Website: www.smilecare.com
+Rating: 4.7
+Provides emergency services.
+
+Locations
+---------
+1. 123 Healthy Way, New York, NY 10001 – phone +1-800-555-0123
+2. 456 Smile St, Los Angeles, CA 90001 – phone +1-800-555-0124
+
+Doctors and Specializations
+---------------------------
+1. Dr. John Smith – Therapeutic Dentist (Endodontics). Schedule: Monday 09-17, Wednesday 10-18, Friday 09-15.
+2. Dr. Anna Brown – Orthodontist (Invisalign Certified). Schedule: Tuesday 09-17, Thursday 10-18, Saturday 09-13.
+3. Dr. Mark Davis – Dental Surgeon (Oral Surgery). Schedule: Monday 08-16, Wednesday 09-17, Friday 08-14.
+4. Dr. Emily Wilson – Cosmetic Dentist (Laser Dentistry). Schedule: Tuesday 10-18, Thursday 09-17.
+5. Dr. Sarah Lee – Prosthodontist (Implantology). Schedule: Monday 09-17, Wednesday 10-18, Friday 09-15.
+6. Dr. Michael Chen – Pediatric Dentist. Schedule: Tuesday 09-17, Thursday 10-18.
+7. Dr. Olga Petrova – Periodontist. Schedule: Monday 08-16, Wednesday 09-17, Friday 08-14.
+
+Service Pricing
+---------------
+- Cavity Filling – $100
+- Teeth Cleaning – $50
+- Root Canal Treatment – $400
+- Braces Installation – $2000
+- Invisalign Treatment – $4500
+- Tooth Extraction – $150
+- Wisdom Tooth Removal – $300
+- Jaw Surgery – $3000
+- Teeth Whitening – $200
+- Veneer Placement – $500
+- Lumineer Installation – $700
+- Dental Implant – $1500
+- Crown Installation – $600
+- Denture Fitting – $1200
+- Pediatric Checkup – $40
+- Fluoride Treatment – $30
+- Gum Disease Treatment – $250
+- Gum Graft Surgery – $800
+
+Insurance Accepted
+------------------
+Examples: Delta Dental, Mora-Castro, Wilson, Jones and Adkins.
+
