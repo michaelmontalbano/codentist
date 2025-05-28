@@ -43,13 +43,57 @@ else:
     faiss_index.save_local(INDEX_DIR)
 
 
-def retrieve_similar(query: str, k: int = 2) -> str:
-    results = faiss_index.similarity_search(query, k=k)
-    return "\n---\n".join([r.page_content for r in results])
+def retrieve_similar(query: str, k: int = 2):
+    results = faiss_index.similarity_search_with_score(query, k=k)
+    return results  # each result is (Document, score)
+
 
 # --- Simple chart state ---
 chart_state: Dict[str, List[str]] = {}
 current_patient: str | None = None
+
+def clear_tooth(command: str) -> str:
+    match = re.search(r"tooth\s+(\d+)", command.lower())
+    if not match:
+        return "Tooth number not found."
+    tooth = match.group(1)
+    chart_state.pop(tooth, None)
+    return f"Cleared data for tooth {tooth}."
+
+def reset_chart(_: str = "") -> str:
+    global chart_state
+    chart_state = {}
+    return "Chart has been reset."
+
+def view_chart(_: str = "") -> str:
+    if not chart_state:
+        return "The chart is currently empty."
+    return json.dumps(chart_state, indent=2)
+
+def summarize_chart(_: str = "") -> str:
+    if not chart_state:
+        return "No data to summarize."
+    summary = [f"Tooth {t}: {', '.join(statuses)}" for t, statuses in chart_state.items()]
+    return "\n".join(summary)
+
+def add_note(command: str) -> str:
+    return f"Note added: {command}"
+
+def mark_missing(command: str) -> str:
+    match = re.search(r"tooth\s+(\d+)", command.lower())
+    if not match:
+        return "Tooth number not found."
+    tooth = match.group(1)
+    chart_state[tooth] = ["MISSING"]
+    return f"Marked tooth {tooth} as missing."
+
+def add_restoration(command: str) -> str:
+    match = re.search(r"tooth\s+(\d+)", command.lower())
+    if not match:
+        return "Tooth number not found."
+    tooth = match.group(1)
+    chart_state.setdefault(tooth, []).append("IMPLANT")
+    return f"Implant noted for tooth {tooth}."
 
 
 def start_exam(name: str) -> str:
@@ -101,19 +145,46 @@ chart_tools = [
          description="Change tooth status. Examples: 'tooth 12 MOD', 'teeth 7 8 9 O'."),
     Tool(name="ExitExam", func=exit_exam, description="Exit the current exam."),
     Tool(name="RestartExam", func=restart_exam, description="Restart the exam, clearing data."),
+    Tool(name="ClearTooth", func=clear_tooth, description="Clear data for a specific tooth. Input is like 'clear tooth 12'."),
+    Tool(name="ResetChart", func=reset_chart, description="Clear all chart data."),
+    Tool(name="ViewChart", func=view_chart, description="View current chart data."),
+    Tool(name="SummarizeChart", func=summarize_chart, description="Summarize affected teeth."),
+    Tool(name="AddNote", func=add_note, description="Add a note. Input is free-form clinical note."),
+    Tool(name="MarkMissing", func=mark_missing, description="Mark a tooth as missing. Example: 'tooth 6 is missing'."),
 ]
 
 prompt = ChatPromptTemplate.from_messages([
     HumanMessage(content="{retrieved}"),
     SystemMessage(content="""
-You are CodyChart, a voice-activated dental charting assistant.
-You only listen to the dentist or dental assistant.
-Understand short commands such as 'start a dental exam for patient X' or
-'tooth 12 MOD'. Use the provided tools to change tooth status and manage
-the exam workflow.
-                  
-The return format should always be: tooth <tooth_number> <status_code>
-                  
+You are CodyChart, a voice-activated dental charting assistant used by dentists and dental assistants in a clinical setting. 
+
+You are listening to live audio transcriptions from a dental operatory. These transcriptions may contain unrelated conversation, background chatter, or speech not directed at you.
+
+Your job is to:
+1. **Detect and act only on valid charting commands**, using similarity to provided examples.
+2. **Ignore all other transcribed text** unless it matches the format or intent of supported commands in the provided examples.
+
+You MUST use the available tools to take action—do NOT respond with free text unless specifically required.
+
+Supported command types include:
+- Starting, ending, pausing, or canceling a dental exam
+- Updating tooth statuses using surface codes (e.g., MOD, B, O)
+- Viewing, summarizing, or resetting the chart
+- Adding clinical notes or marking teeth as missing or restored
+
+Tooth status updates must follow this format:
+    "tooth <tooth_number> <status_code>"
+
+Examples:
+- "tooth 12 MOD" → update tooth 12 with MOD
+- "teeth 7 8 9 O" → update all three with O
+
+If no valid command is detected in the transcription, respond with nothing or skip processing.
+
+If a required value (e.g., patient name) is missing, ask for clarification.
+
+Use the provided context examples (`{retrieved}`) to determine if a command is similar to supported inputs. Only act if it meets a reasonable similarity threshold.
+
 """),
     HumanMessage(content="start exam"),
     AIMessage(content="Who is the patient?"),
@@ -121,6 +192,7 @@ The return format should always be: tooth <tooth_number> <status_code>
     MessagesPlaceholder(variable_name="agent_scratchpad"),
     HumanMessage(content="{input}")
 ])
+
 
 memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True, input_key="input")
 
@@ -138,8 +210,17 @@ while True:
     if user_input.lower() in {"quit", "exit"}:
         print("👋 Exiting.")
         break
-    context = retrieve_similar(user_input)
-    enriched = f"{context}\nUser command: {user_input}"
-    result = chart_agent.invoke({"input": enriched, "retrieved": context})
-    output = result.get("output", str(result))
-    print(f"🤖 {output}")
+    results = retrieve_similar(user_input)
+    top_result_doc, top_score = results[0] if results else (None, 0.0)
+    if top_result_doc or top_score > 0.5:
+        intent = top_result_doc.metadata.get("intent")
+        if intent == "do_nothing":
+            continue
+        context = "\n---\n".join(
+            [doc.page_content for doc, _ in results])
+        result = chart_agent.invoke({"input": enriched, "retrieved": context})
+        output = result.get("output", str(result))
+        print(f"🤖 {output}")
+    else:
+        print(f"top_result_doc: {top_result_doc}, top_score: {top_score}")
+        continue
