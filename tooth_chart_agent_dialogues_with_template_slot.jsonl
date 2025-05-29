@@ -15,10 +15,7 @@
 {"id": "cmd_013", "text": "tooth 29 B", "intent": "change_tooth_status", "teeth": [29], "status": "B"}
 {"id": "cmd_042", "text": "truth number 10 are missing", "intent": "change_tooth_status", "teeth": [10], "status": "missing"}
 {"id": "cmd_043", "text": " I think you Missing Teeth number 1819.", "intent": "change_tooth_status", "teeth": [18, 19], "status": "missing"}
-{"id": "cmd_044", "text": "Implants placed On tooth number 10 side and number 19 side. ", "intent": "change_tooth_status", "teeth": [10, 19], "status": "missing"}
-{"id": "cmd_045", "text": "tooth 7 is sound", "intent": "change_tooth_status", "teeth": [7], "status": "sound"}
-{"id": "cmd_046", "text": "tooth 8 is sound", "intent": "change_tooth_status", "teeth": [8], "status": "sound"}
-{"id": "cmd_047", "text": "tooth 9 is sound", "intent": "change_tooth_status", "teeth": [9], "status": "sound"}
+{"id": "cmd_044", "text": "Implants placed On tooth number 10 side and number 19 side. ", "intent": "add_restoration", "teeth": [10, 19]}
 {"id": "cmd_014", "text": "start a new chart", "intent": "start_exam"}
 {"id": "cmd_041", "text": "start a new dental chart", "intent": "start_exam"}
 {"id": "cmd_015", "text": "begin exam", "intent": "start_exam"}
@@ -31,9 +28,26 @@
 {"id": "cmd_022", "text": "clear tooth 12", "intent": "clear_tooth", "teeth": [12]}
 {"id": "cmd_023", "text": "reset chart", "intent": "reset_chart"}
 {"id": "cmd_024", "text": "remove all cavities", "intent": "reset_chart"}
+{"id": "cmd_201": "text": "restart", "intent": "reset_chart"}
+{"id": "cmd_202", "text": "clear all teeth", "intent": "reset_chart"}
+{"id": "cmd_203", "text": "clear all teeth and restorations", "intent": "reset_chart"}
+{"id": "cmd_204", "text": "show me the chart", "intent": "view_chart"}
+{"id": "cmd_205", "text": "show me the odontogram", "intent": "view_chart"}
+{"id": "cmd_206", "text": "display the chart", "intent": "view_chart"}
 {"id": "cmd_025", "text": "show me the chart", "intent": "view_chart"}
 {"id": "cmd_026", "text": "summarize all caries", "intent": "summarize_chart"}
 {"id": "cmd_027", "text": "what's affected?", "intent": "summarize_chart"}
+{"id": "cmd_301", "text": "lets go over the chart", "intent": "summarize_chart"}
+{"id": "cmd_028", "text": "show me the affected teeth", "intent": "summarize_chart"}
+{"id": "cmd_029", "text": "list all restorations", "intent": "summarize_chart"}
+{"id": "cmd_030", "text": "what's been restored?", "intent": "view_chart"}
+{"id": "cmd_031", "text": "show me the restorations", "intent": "view_chart"}
+{"id": "cmd_032", "text": "list all missing teeth", "intent": "summarize_chart"}
+{"id": "cmd_033", "text": "tell us about the exam", "intent": "summarize_chart"}
+{"id": "cmd_034", "text": "show me the missing teeth", "intent": "summarize_chart"}
+{"id": "cmd_035", "text": "list all implants", "intent": "summarize_chart"}
+{"id": "cmd_036", "text": "what implants are there?", "intent": "summarize_chart"}
+{"id": "cmd_037", "text": "show me the implants", "intent": "summarize_chart"}
 {"id": "cmd_100", "text": "We'll start with the exam first.", "intent": "do_nothing"}
 {"id": "cmd_101", "text": "Open up wide, wider.", "intent": "do_nothing"}
 {"id": "cmd_102", "text": "Are you comfortable? OK, great.", "intent": "do_nothing"}

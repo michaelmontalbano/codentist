@@ -22,7 +22,7 @@ llm = ChatOpenAI(temperature=0.2, model="gpt-4o")
 
 # --- Load command dataset and build / load FAISS index ---
 DATA_PATH = "tooth_chart_commands.jsonl"
-INDEX_DIR = "rag_tooth_chart_faiss_index"
+INDEX_DIR = "tooth_chart_agent_faiss_index"
 
 def load_commands() -> List[dict]:
     cmds = []
@@ -35,7 +35,6 @@ if os.path.exists(INDEX_DIR):
     faiss_index = FAISS.load_local(
         INDEX_DIR, OpenAIEmbeddings(), allow_dangerous_deserialization=True
     )
-    commands = load_commands()
 else:
     commands = load_commands()
     docs = [Document(page_content=c["text"], metadata={"intent": c["intent"]}) for c in commands]
@@ -178,6 +177,13 @@ Tooth status updates must follow this format:
 Examples:
 - "tooth 12 MOD" → update tooth 12 with MOD
 - "teeth 7 8 9 O" → update all three with O
+                  
+Restorations, which are different from tooth status updates, should follow this format:
+    "add_restoration <tooth_number>"
+
+Examples:
+- "add_restoration 12" → note an implant for tooth 12
+- "add_restoration 7 15" → note implants for teeth 7 and 15
 
 If no valid command is detected in the transcription, respond with nothing or skip processing.
 
@@ -186,8 +192,6 @@ If a required value (e.g., patient name) is missing, ask for clarification.
 Use the provided context examples (`{retrieved}`) to determine if a command is similar to supported inputs. Only act if it meets a reasonable similarity threshold.
 
 """),
-    HumanMessage(content="start exam"),
-    AIMessage(content="Who is the patient?"),
     MessagesPlaceholder(variable_name="chat_history"),
     MessagesPlaceholder(variable_name="agent_scratchpad"),
     HumanMessage(content="{input}")
@@ -213,11 +217,13 @@ while True:
     results = retrieve_similar(user_input)
     top_result_doc, top_score = results[0] if results else (None, 0.0)
     if top_result_doc or top_score > 0.5:
+        print('getting intent')
         intent = top_result_doc.metadata.get("intent")
         if intent == "do_nothing":
             continue
         context = "\n---\n".join(
             [doc.page_content for doc, _ in results])
+        enriched = f"{context}\nUser command: {user_input}"
         result = chart_agent.invoke({"input": enriched, "retrieved": context})
         output = result.get("output", str(result))
         print(f"🤖 {output}")
