@@ -1,0 +1,154 @@
+import React, { Suspense, useRef } from 'react'
+import { Canvas } from '@react-three/fiber'
+import { OrbitControls, useGLTF } from '@react-three/drei'
+import * as THREE from 'three'
+
+const fullArchMaxillary = [
+  'maxillary_third_molar',
+  'maxillary_second_molar',
+  'maxillary_first_molar',
+  'maxillary_second_premolar',
+  'maxillary_first_premolar',
+  'maxillary_canine',
+  'maxillary_lateral_incisor',
+  'maxillary_left_central_incisor',
+  'maxillary_left_central_incisor',
+  'maxillary_lateral_incisor',
+  'maxillary_canine',
+  'maxillary_first_premolar',
+  'maxillary_second_premolar',
+  'maxillary_first_molar',
+  'maxillary_second_molar',
+  'maxillary_third_molar'
+]
+
+function Tooth({ name, position, rotation, isRightSide = false }) {
+  const path = `teeth3D/${name}.glb`
+  console.log(`Attempting to load: ${path}`)
+  
+  try {
+    const { scene } = useGLTF(path)
+    if (!scene) {
+      console.warn(`Model failed to load: ${path}`)
+      return (
+        <mesh position={position} rotation={rotation} scale={[0.5, 0.5, 0.5]}>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="red" />
+        </mesh>
+      )
+    }
+    
+    const cloned = scene.clone(true)
+    
+    // Keep original materials but enhance shine/polish
+    cloned.traverse((child) => {
+      if (child.isMesh) {
+        // If material exists, enhance it for polish without changing color
+        if (child.material) {
+          const originalMaterial = child.material
+          
+          // Create enhanced material based on original
+          child.material = originalMaterial.clone()
+          
+          // Add polish/shine properties while preserving original color
+          child.material.metalness = Math.min((child.material.metalness || 0) + 0.1, 1)
+          child.material.roughness = Math.max((child.material.roughness || 0.5) - 0.3, 0.1)
+          
+          // Add clearcoat for polish if material supports it
+          if (child.material.isMeshPhysicalMaterial || child.material.isMeshStandardMaterial) {
+            child.material.clearcoat = 0.5
+            child.material.clearcoatRoughness = 0.1
+          }
+        }
+        
+        child.castShadow = true
+        child.receiveShadow = true
+      }
+    })
+    
+    // Apply mirroring for right side teeth if needed
+    if (isRightSide) {
+      cloned.scale.set(-1.2, 1.2, 1.2) // Mirror on X-axis
+    } else {
+      cloned.scale.set(1.2, 1.2, 1.2)
+    }
+    
+    return <primitive object={cloned} position={position} rotation={rotation} />
+  } catch (e) {
+    console.error(`Error loading ${path}:`, e)
+    return (
+      <mesh position={position} rotation={rotation} scale={[0.5, 0.5, 0.5]}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color="orange" />
+      </mesh>
+    )
+  }
+}
+
+export default function ToothChart3D() {
+  const groupRef = useRef()
+
+  return (
+    <>
+      <Canvas camera={{ position: [0, 5, 25], fov: 60 }} style={{ height: '100vh', width: '100vw' }} shadows>
+        {/* Standard lighting setup */}
+        <ambientLight intensity={0.6} />
+        <directionalLight 
+          position={[10, 10, 5]} 
+          intensity={1.0} 
+          castShadow
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
+        />
+        <directionalLight position={[-5, 8, 5]} intensity={0.8} />
+        <pointLight position={[0, 10, 0]} intensity={0.5} />
+        
+        <Suspense fallback={null}>
+          <group ref={groupRef}>
+            {fullArchMaxillary.map((file, i) => {
+              // Create horizontal layout like dental chart
+              const totalTeeth = fullArchMaxillary.length
+              const isRightSide = i < 8
+              
+              // Horizontal spacing for side-by-side layout
+              const spacing = 1 // Space between teeth
+              const startX = -(totalTeeth - 1) * spacing / 2 // Center the row
+              const x = startX + i * spacing
+              const y = 0
+              const z = 0
+              
+              // All teeth face forward (no arch rotation)
+              const rotationY = 0
+              
+              console.log(`Rendering TOOTH: ${file} | Index: ${i} | Position: [${x.toFixed(1)}, ${y}, ${z}] | Right Side: ${isRightSide}`)
+              
+              return (
+                <Tooth 
+                  key={`tooth_${i}`} 
+                  name={file} 
+                  position={[x, y, z]} 
+                  rotation={[0, rotationY, 0]} 
+                  isRightSide={isRightSide}
+                />
+              )
+            })}
+          </group>
+        </Suspense>
+        
+        <OrbitControls 
+          enablePan={true} 
+          enableZoom={true} 
+          enableRotate={true}
+          minDistance={0.01}
+          maxDistance={500}
+          maxPolarAngle={Math.PI}
+          minPolarAngle={0}
+          panSpeed={3}
+          zoomSpeed={5}
+          rotateSpeed={1}
+          enableDamping={false}
+        />
+      </Canvas>
+    </>
+  )
+}
